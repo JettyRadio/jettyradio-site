@@ -1,7 +1,5 @@
 ---
 import AdminLayout from '../../layouts/admin-layout.astro'
-import { getPlaylists } from '../../lib/azuracast/get-playlists'
-const playlists = await getPlaylists()
 ---
 
 <style>
@@ -19,11 +17,6 @@ const playlists = await getPlaylists()
                 <span>Playlist</span>
                 <select name="playlist" id="playlist" class="select" required>
                     <option selected disabled hidden>Select a playlist</option>
-                    {
-                        playlists.map((playlist) => (
-                            <option value={playlist.id}>{playlist.name}</option>
-                        ))
-                    }
                 </select>
                 <small id="playlist-note" class="note"></small>
             </label>
@@ -216,6 +209,7 @@ const playlists = await getPlaylists()
 
         window.addEventListener('load', async () => {
             await window.Clerk.load()
+            if (!window.Clerk.user) return
             const apiKey = window.Clerk.user?.publicMetadata.azuracastApiKey as
                 | string
                 | undefined
@@ -228,6 +222,9 @@ const playlists = await getPlaylists()
             }
             const allShowFiles = await getAllShows(apiKey)
             const allPlaylists = await getPlaylists(apiKey)
+            for (const playlist of allPlaylists) {
+                playlistInput.add(new Option(playlist.name, String(playlist.id)))
+            }
 
             playlistInput?.addEventListener('change', (e) => {
                 let value = -1

@@ -59,12 +59,12 @@ const { backstage = false } = Astro.props;
     <a class="link" href="https://instagram.com/jettyradio" target="_blank"
         >Instagram</a
     >
-    {backstage && <>
+    {backstage && <Show when="signed-in">
         <br />
         <a class="link" href="/backstage/episodes">Episodes</a> 𒀭
         <a class="link" href="/backstage/djs">DJs</a> 𒀭
         <a class="link" href="/backstage/submissions">Recently submitted</a> 𒀭
         <a class="link" href="/backstage/desk">Scheduling Desk</a>
-        <Show when="signed-in"><div class="account"><UserButton /></div></Show>
-    </>}
+        <div class="account"><UserButton /></div>
+    </Show>}
 </nav>
