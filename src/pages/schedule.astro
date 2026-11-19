@@ -40,6 +40,34 @@ const gCalUrl = `https://www.google.com/calendar/render?cid=${icsUrl}`
     display: flex;
     justify-content: center;
   }
+  .show-proposal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 16px 8px;
+    font-family: serif;
+    font-size: 16px;
+    line-height: 1.5;
+    text-align: center;
+
+    a {
+      display: inline-block;
+      padding: 8px;
+      color: #f2f2f2;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+
+      &:hover {
+        color: #fff;
+      }
+
+      &:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 4px;
+      }
+    }
+  }
   small {
     text-align: center;
     font-family: serif;
@@ -111,4 +139,16 @@ const gCalUrl = `https://www.google.com/calendar/render?cid=${icsUrl}`
         Fourth Sundays 4:20-5:20pm 𒀭 trashnight w/ <a href="https://www.instagram.com/loaf_bkr" target="_blank">loaf brk</a><br />
         Fourth Sundays 7-8pm 𒀭 SUONO GLOBALE w/ <a href="https://www.instagram.com/joeyaliotti/" target="_blank">PRIMA</a></small>
   <hr style="width:100%" />
+  <div class="show-proposal">
+    <p>Have an idea for a show?</p>
+    <div>
+      <span aria-hidden="true">𒀭</span>
+      <a
+        href="https://forms.gle/oQXbVimjwXjUboSV8"
+        target="_blank"
+        rel="noopener noreferrer">Submit a show proposal</a
+      >
+      <span aria-hidden="true">𒀭</span>
+    </div>
+  </div>
 </MainLayout>
