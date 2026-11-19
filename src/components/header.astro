@@ -2,8 +2,6 @@
 import logo from "../assets/jettyradio2.png";
 import { Show, UserButton } from '@clerk/astro/components';
 
-interface Props { backstage?: boolean }
-const { backstage = false } = Astro.props;
 ---
 
 <style>
@@ -59,12 +57,11 @@ const { backstage = false } = Astro.props;
     <a class="link" href="https://instagram.com/jettyradio" target="_blank"
         >Instagram</a
     >
-    {backstage && <Show when="signed-in">
-        <br />
+    <Show when="signed-in">
         <a class="link" href="/backstage/episodes">Episodes</a> 𒀭
         <a class="link" href="/backstage/djs">DJs</a> 𒀭
         <a class="link" href="/backstage/submissions">Recently submitted</a> 𒀭
         <a class="link" href="/backstage/desk">Scheduling Desk</a>
         <div class="account"><UserButton /></div>
-    </Show>}
+    </Show>
 </nav>
