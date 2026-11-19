@@ -13,16 +13,7 @@ const artistOptions = [...artists].sort((a, b) => a[1].localeCompare(b[1]))
 ---
 
 <MainLayout title="Archives | Jetty Radio" wide>
-  <section class="archive" aria-labelledby="archive-title">
-    <header class="archive-intro">
-      <div>
-        <p class="eyebrow">Independent radio. Saved for later.</p>
-        <h1 id="archive-title">The archives<span aria-hidden="true">.</span></h1>
-        <p class="intro-copy">Missed a show? Found a favorite? Dig in.</p>
-      </div>
-      <div class="record" aria-hidden="true"><span>JETTY<br />RADIO</span></div>
-    </header>
-
+  <section class="archive" aria-label="Archives">
     <form class="archive-filters" role="search" aria-label="Search the archives" hidden>
       <label class="search-field">
         <span>Find a recording</span>
@@ -142,7 +133,7 @@ const artistOptions = [...artists].sort((a, b) => a[1].localeCompare(b[1]))
 </script>
 
 <style>
-  .archive { color: #f1f3e9; }
+  .archive { color: #f2f2f2; }
   .archive [hidden] { display: none !important; }
   .archive-intro {
     display: flex;
@@ -150,12 +141,12 @@ const artistOptions = [...artists].sort((a, b) => a[1].localeCompare(b[1]))
     align-items: center;
     gap: 24px;
     padding: 36px 0 40px;
-    border-top: 1px solid #829475;
+    border-top: 1px solid #888888;
   }
-  .eyebrow { font: 0.875rem/1.5 monospace; color: #d7edbd; }
+  .eyebrow { font: 0.875rem/1.5 monospace; color: #eeeeee; }
   h1 { font: clamp(3rem, 7vw, 5.5rem)/1.1 Georgia, serif; letter-spacing: -0.055em; margin: 12px 0 16px; }
-  h1 span { color: #d7edbd; }
-  .intro-copy { color: #b9c1b5; font-size: 1rem; }
+  h1 span { color: #eeeeee; }
+  .intro-copy { color: #bbbbbb; font-size: 1rem; }
   .record {
     width: 148px;
     aspect-ratio: 1;
@@ -163,27 +154,28 @@ const artistOptions = [...artists].sort((a, b) => a[1].localeCompare(b[1]))
     display: grid;
     place-items: center;
     border-radius: 50%;
-    border: 1px solid #59624b;
-    background: repeating-radial-gradient(circle, #171c16 0 3px, #3a4330 4px, #171c16 5px 7px);
+    border: 1px solid #5e5e5e;
+    background: repeating-radial-gradient(circle, #191919 0 3px, #3d3d3d 4px, #191919 5px 7px);
     transform: rotate(-15deg);
   }
-  .record span { display: grid; place-content: center; width: 62px; height: 62px; border-radius: 50%; background: #d7edbd; color: #1b2518; font: 0.8125rem/1.1 monospace; text-align: center; }
-  .archive-filters { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 16px; padding: 24px; background: #1b211c; border: 1px solid #ffffff25; }
+  .record span { display: grid; place-content: center; width: 62px; height: 62px; border-radius: 50%; background: #eeeeee; color: #202020; font: 0.8125rem/1.1 monospace; text-align: center; }
+  .archive-filters { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 16px; padding: 24px; background: transparent; border: 1px solid #ffffff25; }
+  .archive-filters, input, select { font-family: Georgia, serif; }
   label { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-  label span { font-size: 0.875rem; color: #c4cdbf; }
-  input, select { width: 100%; min-width: 0; height: 48px; border: 1px solid #65715e; border-radius: 0; background-color: #111711; color: #f1f3e9; padding: 0 12px; font-size: 1rem; color-scheme: dark; }
-  input::placeholder { color: #a7b19f; }
-  select { appearance: none; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23d7edbd' stroke-width='1.5'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
-  :is(input, select, button):focus-visible { outline: 2px solid #d7edbd; outline-offset: 3px; }
-  .archive-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin: 24px 0 20px; font-size: 0.875rem; color: #c4cdbf; }
-  #clear-filters { color: #d7edbd; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; min-height: 44px; }
+  label span { font-size: 0.875rem; color: #cccccc; }
+  input, select { width: 100%; min-width: 0; height: 48px; border: 1px solid #6b6b6b; border-radius: 0; background-color: transparent; color: #f2f2f2; padding: 0 12px; font-size: 1rem; color-scheme: dark; }
+  input::placeholder { color: #aaaaaa; }
+  select { appearance: none; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23eeeeee' stroke-width='1.5'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+  :is(input, select, button):focus-visible { outline: 2px solid #eeeeee; outline-offset: 3px; }
+  .archive-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin: 24px 0 20px; font-size: 0.875rem; color: #cccccc; }
+  #clear-filters { color: #eeeeee; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; min-height: 44px; }
   .archive-note { margin-left: auto; font-family: Georgia, serif; font-style: italic; }
   .archive-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; list-style: none; margin: 0; padding: 0; }
   .archive-grid li { min-width: 0; }
-  .empty-state { padding: 72px 24px; text-align: center; border: 1px dashed #65715e; }
+  .empty-state { padding: 72px 24px; text-align: center; border: 1px dashed #6b6b6b; }
   .empty-state h2 { font: 2rem/1.2 Georgia, serif; margin-bottom: 12px; }
-  .empty-state p { color: #b9c1b5; }
-  .archive-footer { margin-top: 48px; padding: 24px 0; border-top: 1px solid #65715e; font: italic 1rem Georgia, serif; color: #c4cdbf; text-align: center; }
+  .empty-state p { color: #bbbbbb; }
+  .archive-footer { margin-top: 48px; padding: 24px 0; border-top: 1px solid #6b6b6b; font: italic 1rem Georgia, serif; color: #cccccc; text-align: center; }
   @media (max-width: 800px) {
     .archive-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
     .archive-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
