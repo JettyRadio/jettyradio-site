@@ -30,11 +30,20 @@ Before merging this workflow, configure repository Settings → Secrets and vari
 | Secret | `CLOUDFLARE_API_TOKEN` | Cloudflare API token permitted to deploy Workers in the Jetty account. Start with the Edit Cloudflare Workers template and restrict it to that account. |
 | Secret | `CLOUDFLARE_ACCOUNT_ID` | Account ID containing `jettyradio-desk` and its D1 database. |
 | Variable | `CLERK_ALLOWED_USER_IDS` | Comma-separated approved production Clerk user IDs. The workflow overrides the empty checked-in allowlist. |
+| Variable | `CLERK_ALLOWED_EMAILS` | Optional comma-separated approved primary email addresses for automatic access after signup. |
 | Variable | `PUBLIC_DESK_API_URL` | `https://jettyradio-desk.jettyradio-desk-api.workers.dev` |
 
 Keep the existing website secrets `AZURACAST_API_KEY` and `PUBLIC_CLERK_PUBLISHABLE_KEY`. The Worker's `CLERK_JWT_KEY` and restricted `AZURACAST_API_KEY` remain in Cloudflare; deployments preserve them. Until all four deployment settings are present, the workflow warns and skips the Worker deployment while allowing the website to publish. The existing Worker is unchanged. Adding all four settings automatically enables Worker deployment on the next run; a real Worker deployment failure then blocks website publication. Database migrations remain an explicit release step. Apply pending migrations before deploying features that depend on them. A Pages failure after the Worker deploys does not roll back the Worker.
 
 Cloudflare authentication setup: https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/
+
+### Automatic access for invited organizers
+
+Set `CLERK_ALLOWED_EMAILS` to the specific invited organizers' addresses in both the live Worker and GitHub Actions variables. Store that production Clerk instance's `CLERK_SECRET_KEY` as an encrypted Worker secret; Wrangler preserves it across deployments. Do not put the key or the email list in source control. Local development can use the matching development key and email list in the root `.env`.
+
+After an organizer accepts an invitation and signs in, the Worker verifies the session and reads that account from Clerk. Access requires an exact, case-insensitive match on its verified primary email and an account that is neither banned nor locked. This works with invitations already sent; it does not copy new user IDs into `CLERK_ALLOWED_USER_IDS`. Existing approved user IDs continue to work without a Clerk API lookup.
+
+Email-based access performs a Clerk API read on each request and returns 503 if that read fails or the Worker secret is missing. Removing an address from both live and deployment configuration revokes email-based access; remove any separately approved user ID as well. New invitations do not grant access unless their email is explicitly approved in this list. This is a fixed list, not an ongoing Google Group sync.
 
 ## Production release
 
@@ -81,7 +90,7 @@ Run `node --test desk-worker/src/*.test.mjs` from the site root for scheduling a
 
 ## Recovery
 
-Keep the existing hosted desk available until the website replacement is verified. For a backend regression, use Cloudflare's deployment rollback and inspect D1 before changing data. Back up D1 before destructive migrations. To stop station writes, remove/revoke the restricted AzuraCast key. To close all desk access, clear `CLERK_ALLOWED_USER_IDS` and deploy.
+Keep the existing hosted desk available until the website replacement is verified. For a backend regression, use Cloudflare's deployment rollback and inspect D1 before changing data. Back up D1 before destructive migrations. To stop station writes, remove/revoke the restricted AzuraCast key. To close all desk access, clear both `CLERK_ALLOWED_USER_IDS` and `CLERK_ALLOWED_EMAILS` in live and deployment configuration and deploy.
 
 ## Episode genre tags
 

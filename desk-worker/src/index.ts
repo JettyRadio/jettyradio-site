@@ -2,7 +2,7 @@ import { episodeTags, updateEpisode } from "./episodes";
 import { receiveSubmission, listSubmissions, reviewSubmission } from "./submissions";
 import { getDJDirectory } from "./dj-directory";
 import { readLimited } from "./body";
-import { verifyToken } from "@clerk/backend";
+import { createClerkClient, verifyToken } from "@clerk/backend";
 import { validateShows } from "./validation.mjs";
 import { station } from "./station";
 import { schedule } from "./schedule";
@@ -57,7 +57,8 @@ export function createHandler(verifySession: Verify = verify) {
     if (
       !env.CLERK_JWT_KEY ||
       !env.CLERK_ISSUER ||
-      !values(env.CLERK_ALLOWED_USER_IDS).length
+      (!values(env.CLERK_ALLOWED_USER_IDS).length &&
+        !values(env.CLERK_ALLOWED_EMAILS).length)
     )
       return finish(reply("Team access has not been configured.", 503));
     const token = request.headers
@@ -73,10 +74,27 @@ export function createHandler(verifySession: Verify = verify) {
     if (
       identity.iss !== env.CLERK_ISSUER ||
       !identity.azp ||
-      !origins.includes(identity.azp) ||
-      !values(env.CLERK_ALLOWED_USER_IDS).includes(identity.sub)
+      !origins.includes(identity.azp)
     )
       return finish(reply("This account does not have desk access.", 403));
+    if (!values(env.CLERK_ALLOWED_USER_IDS).includes(identity.sub)) {
+      const emails = values(env.CLERK_ALLOWED_EMAILS).map(email => email.toLowerCase());
+      if (!emails.length)
+        return finish(reply("This account does not have desk access.", 403));
+      if (!env.CLERK_SECRET_KEY)
+        return finish(reply("Team email access has not been configured.", 503));
+      let user;
+      try {
+        user = await createClerkClient({ secretKey: env.CLERK_SECRET_KEY }).users.getUser(identity.sub);
+      } catch {
+        return finish(reply("Could not verify team access. Try again shortly.", 503));
+      }
+      const email = user.emailAddresses.find(address => address.id === user.primaryEmailAddressId);
+      if (user.id !== identity.sub || user.banned || user.locked ||
+        email?.verification?.status !== "verified" ||
+        !emails.includes(email.emailAddress.toLowerCase()))
+        return finish(reply("This account does not have desk access.", 403));
+    }
     try {
       if (path === "/api/submissions" && request.method === "GET")
         return finish(await listSubmissions(request, env));
