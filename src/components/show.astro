@@ -8,8 +8,10 @@ interface Props {
   setlist: string
   image: string
   downloadLink: string
+  variant?: 'list' | 'card'
+  duration?: string
 }
-const { djs, title, date, setlist, image, downloadLink } = Astro.props
+const { djs, title, date, setlist, image, downloadLink, variant = 'list', duration } = Astro.props
 ---
 
 <style lang="scss" define:vars={{ thumbnailSize: '130px' }}>
@@ -125,11 +127,82 @@ const { djs, title, date, setlist, image, downloadLink } = Astro.props
       background: #fff2;
     }
   }
+  .show.card {
+    flex-direction: column;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    border: 1px solid #ffffff25;
+    background: #161616;
+    .thumbnail-container {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+      overflow: hidden;
+      background: #292929;
+    }
+    .thumbnail {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .transport-button {
+      width: 100%;
+      height: 100%;
+      opacity: 1;
+    }
+    .transport-button span {
+      display: flex;
+      width: 56px;
+      height: 56px;
+      background: #161616e6;
+      border: 1px solid #eeeeee;
+      color: #eeeeee;
+    }
+    .transport-button:hover span {
+      background: #eeeeee;
+      color: #161616;
+    }
+    .show-content {
+      width: 100%;
+      flex: 1;
+      padding: 20px;
+      gap: 20px;
+    }
+    .details { gap: 10px; }
+    .show-date {
+      color: #bbbbbb;
+      font-size: 0.8125rem;
+      font-style: normal;
+    }
+    .show-title {
+      font-family: Georgia, serif;
+      font-size: 1.5rem;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+    .dj { margin-top: 8px; }
+    .dj a { font-size: 0.875rem; color: #eeeeee; }
+    .button-group {
+      align-items: center;
+      border-top: 1px solid #ffffff20;
+      padding-top: 14px;
+    }
+    .icon-button { width: 40px; height: 40px; border-color: #ffffff40; }
+    .duration { margin-left: auto; color: #bbbbbb; font-size: 0.8125rem; font-family: monospace; }
+    .setlist { width: 100%; }
+    .setlist summary { font-size: 0.875rem; }
+    .setlist pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.875rem; }
+    :is(button, a, summary):focus-visible { outline: 2px solid #eeeeee; outline-offset: 4px; }
+    .transport-button:focus-visible { outline-offset: -4px; }
+  }
 </style>
-<div class="show">
+<div class:list={['show', { card: variant === 'card' }]}>
   <div class="thumbnail-container">
     <button
       class="play-show-btn transport-button"
+      aria-label={`Play ${title}`}
       data-src={downloadLink}
       data-thumbnail={image}
       data-title={title}
@@ -137,13 +210,13 @@ const { djs, title, date, setlist, image, downloadLink } = Astro.props
       ><span><Icon name="play" size="30" /></span></button
     >
 
-    <img src={image} class="thumbnail" />
+    <img src={image || '/apple-touch-icon.png'} class="thumbnail" alt="" loading="lazy" />
   </div>
   <div class="show-content">
     <div class="details">
       <div class="show-date">{formatShowDate(date)}</div>
       <div class="title">
-        <div class="show-title">{title}</div>
+        {variant === 'card' ? <h2 class="show-title">{title}</h2> : <div class="show-title">{title}</div>}
         <div class="dj">
           {
             djs.map((dj, i) => (
@@ -167,17 +240,18 @@ const { djs, title, date, setlist, image, downloadLink } = Astro.props
       }
     </div>
     <div class="button-group">
-      <a class="download icon-button" aria-label="download" href={downloadLink}
+      <a class="download icon-button" aria-label={`Download ${title}`} href={downloadLink}
         ><Icon name="download" size="18" /></a
       >
       <button
         class="play-show-btn icon-button"
-        aria-label="play"
+        aria-label={`Play ${title}`}
         data-src={downloadLink}
         data-thumbnail={image}
         data-title={title}
         data-dj={djs.join(' & ')}><Icon name="play" /></button
       >
+      {duration && <span class="duration" aria-label={`Duration ${duration}`}>{duration}</span>}
     </div>
   </div>
 </div>
