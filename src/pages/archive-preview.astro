@@ -1,0 +1,202 @@
+---
+import Show from '../components/show.astro'
+import MainLayout from '../layouts/main-layout.astro'
+import { getArchives } from '../lib/azuracast/get-archives'
+import { getDjSlug } from '../utils'
+const archives = await getArchives()
+archives.sort((a, b) => b.date.getTime() - a.date.getTime())
+const artists = new Map<string, string>()
+for (const artist of archives.flatMap((show) => show.artists).filter(Boolean)) {
+  if (!artists.has(getDjSlug(artist))) artists.set(getDjSlug(artist), artist)
+}
+const artistOptions = [...artists].sort((a, b) => a[1].localeCompare(b[1]))
+---
+
+<MainLayout title="Archive Preview | Jetty Radio" wide>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+    <script is:inline data-astro-rerun>
+      if (new URLSearchParams(window.location.search).get('preview') !== 'grid') {
+        window.location.replace('/archive/');
+      }
+    </script>
+  </Fragment>
+  <section class="archive" aria-label="Archives" hidden>
+    <form class="archive-filters" role="search" aria-label="Search the archives" hidden>
+      <label class="search-field">
+        <span>Find a recording</span>
+        <input type="search" name="q" placeholder="Search shows, DJs, or tracks…" autocomplete="off" />
+      </label>
+      <label>
+        <span>DJ</span>
+        <select name="dj">
+          <option value="">All DJs</option>
+          {artistOptions.map(([slug, artist]) => <option value={slug}>{artist}</option>)}
+        </select>
+      </label>
+      <label>
+        <span>Sort by</span>
+        <select name="sort">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
+      </label>
+    </form>
+
+    <div class="archive-meta">
+      <p role="status" aria-live="polite" aria-atomic="true" id="archive-count">{archives.length} {archives.length === 1 ? 'recording' : 'recordings'}</p>
+      <button type="button" id="clear-filters" hidden>Clear filters</button>
+      <span class="archive-note">From Santa Cruz, with love.</span>
+    </div>
+
+    <ul class="archive-grid" aria-label="Archived recordings">
+      {archives.map((show) => (
+        <li
+          data-search={[show.title, ...show.artists, show.setlist].join(' ')}
+          data-artists={JSON.stringify(show.artists.map(getDjSlug))}
+        >
+          <Show
+            variant="card"
+            djs={show.artists}
+            title={show.title}
+            date={show.date}
+            setlist={show.setlist}
+            image={show.art}
+            downloadLink={show.download}
+            duration={show.length_text}
+          />
+        </li>
+      ))}
+    </ul>
+    <div class="empty-state" id="archive-empty" hidden={archives.length > 0}>
+      <h2>{archives.length ? 'Nothing on this frequency.' : 'The collection is on its way.'}</h2>
+      <p>{archives.length ? 'Try another show, DJ, or track, or clear your filters to browse everything.' : 'Check back soon for recordings from Jetty Radio.'}</p>
+    </div>
+    <footer class="archive-footer">Stay curious. Keep listening.</footer>
+  </section>
+</MainLayout>
+
+<script>
+  function setupArchive() {
+    const form = document.querySelector<HTMLFormElement>('.archive-filters')
+    const grid = document.querySelector<HTMLUListElement>('.archive-grid')
+    const count = document.getElementById('archive-count')
+    const clear = document.getElementById('clear-filters')
+    const empty = document.getElementById('archive-empty')
+    if (!form || !grid || !count || !clear || !empty) return
+
+    const search = form.elements.namedItem('q') as HTMLInputElement
+    const dj = form.elements.namedItem('dj') as HTMLSelectElement
+    const sort = form.elements.namedItem('sort') as HTMLSelectElement
+    const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    const recordings = Array.from(grid.querySelectorAll<HTMLLIElement>('li')).map((element) => ({
+      element,
+      search: normalize(element.dataset.search ?? ''),
+      artists: JSON.parse(element.dataset.artists ?? '[]') as string[],
+    }))
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('preview') !== 'grid') return
+    document.querySelector<HTMLElement>('.archive')!.hidden = false
+    search.value = params.get('q') ?? ''
+    dj.value = params.get('dj') ?? ''
+    sort.value = params.get('sort') === 'oldest' ? 'oldest' : 'newest'
+
+    function update() {
+      const terms = normalize(search.value.trim()).split(/\s+/).filter(Boolean)
+      let visible = 0
+      const ordered = sort.value === 'oldest' ? [...recordings].reverse() : recordings
+      for (const recording of ordered) {
+        const matches = terms.every((term) => recording.search.includes(term))
+          && (!dj.value || recording.artists.includes(dj.value))
+        recording.element.hidden = !matches
+        if (matches) visible++
+        grid!.append(recording.element)
+      }
+      const filtered = terms.length > 0 || Boolean(dj.value)
+      count!.textContent = filtered
+        ? `${visible} of ${recordings.length} recordings`
+        : `${visible} ${visible === 1 ? 'recording' : 'recordings'}`
+      clear!.hidden = !filtered
+      empty!.hidden = visible > 0
+      const url = new URL(window.location.href)
+      for (const [key, value] of [['q', search.value.trim()], ['dj', dj.value], ['sort', sort.value === 'oldest' ? 'oldest' : '']]) {
+        if (value) url.searchParams.set(key, value)
+        else url.searchParams.delete(key)
+      }
+      if (url.href !== window.location.href) window.history.replaceState(window.history.state, '', url)
+    }
+
+    form.hidden = false
+    form.addEventListener('submit', (event) => event.preventDefault())
+    search.addEventListener('input', update)
+    dj.addEventListener('change', update)
+    sort.addEventListener('change', update)
+    clear.addEventListener('click', () => {
+      search.value = ''
+      dj.value = ''
+      update()
+      search.focus()
+    })
+    update()
+  }
+  document.addEventListener('astro:page-load', setupArchive)
+</script>
+
+<style>
+  .archive { color: #f2f2f2; }
+  .archive [hidden] { display: none !important; }
+  .archive-intro {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    padding: 36px 0 40px;
+    border-top: 1px solid #888888;
+  }
+  .eyebrow { font: 0.875rem/1.5 monospace; color: #eeeeee; }
+  h1 { font: clamp(3rem, 7vw, 5.5rem)/1.1 Georgia, serif; letter-spacing: -0.055em; margin: 12px 0 16px; }
+  h1 span { color: #eeeeee; }
+  .intro-copy { color: #bbbbbb; font-size: 1rem; }
+  .record {
+    width: 148px;
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid #5e5e5e;
+    background: repeating-radial-gradient(circle, #191919 0 3px, #3d3d3d 4px, #191919 5px 7px);
+    transform: rotate(-15deg);
+  }
+  .record span { display: grid; place-content: center; width: 62px; height: 62px; border-radius: 50%; background: #eeeeee; color: #202020; font: 0.8125rem/1.1 monospace; text-align: center; }
+  .archive-filters { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 16px; padding: 24px; background: transparent; border: 1px solid #ffffff25; }
+  .archive-filters, input, select { font-family: Georgia, serif; }
+  label { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  label span { font-size: 0.875rem; color: #cccccc; }
+  input, select { width: 100%; min-width: 0; height: 48px; border: 1px solid #6b6b6b; border-radius: 0; background-color: transparent; color: #f2f2f2; padding: 0 12px; font-size: 1rem; color-scheme: dark; }
+  input::placeholder { color: #aaaaaa; }
+  select { appearance: none; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23eeeeee' stroke-width='1.5'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+  :is(input, select, button):focus-visible { outline: 2px solid #eeeeee; outline-offset: 3px; }
+  .archive-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin: 24px 0 20px; font-size: 0.875rem; color: #cccccc; }
+  #clear-filters { color: #eeeeee; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; min-height: 44px; }
+  .archive-note { margin-left: auto; font-family: Georgia, serif; font-style: italic; }
+  .archive-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; list-style: none; margin: 0; padding: 0; }
+  .archive-grid li { min-width: 0; }
+  .empty-state { padding: 72px 24px; text-align: center; border: 1px dashed #6b6b6b; }
+  .empty-state h2 { font: 2rem/1.2 Georgia, serif; margin-bottom: 12px; }
+  .empty-state p { color: #bbbbbb; }
+  .archive-footer { margin-top: 48px; padding: 24px 0; border-top: 1px solid #6b6b6b; font: italic 1rem Georgia, serif; color: #cccccc; text-align: center; }
+  @media (max-width: 800px) {
+    .archive-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .archive-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .search-field { grid-column: 1 / -1; }
+    .record { width: 100px; }
+  }
+  @media (max-width: 500px) {
+    .archive-intro { padding: 24px 0; }
+    .record { display: none; }
+    .archive-filters { padding: 16px; gap: 12px; }
+    .archive-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .archive-note { display: none; }
+  }
+</style>
