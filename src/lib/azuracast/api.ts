@@ -1,5 +1,6 @@
 import { ARCHIVE_PLAYLIST_ID, BASE_URL } from "./constants"
 import type { AzuraPlaylist, AzuraShow } from "./types"
+import { airDateHasPassed } from "../../utils"
 
 export const getAllFiles = async (apiKey: string): Promise<AzuraShow[]> => {
     const res = await fetch(`${BASE_URL}/files`, {
@@ -62,6 +63,14 @@ export const updateFile = async (apiKey: string, fileId: number, data: UpdateFil
 }
 
 export const moveFileToArchive = async (apiKey: string, fileId: number) => {
+    const fileResponse = await fetch(`${BASE_URL}/file/${fileId}`, {
+        headers: { 'X-API-Key': apiKey },
+    })
+    if (!fileResponse.ok) throw new Error('Could not verify the episode air date before archiving.')
+    const file: AzuraShow = await fileResponse.json()
+    if (!file.custom_fields.air_date || !airDateHasPassed(file.custom_fields.air_date)) {
+        throw new Error('Wait until after the episode’s Pacific air date before archiving it.')
+    }
     const res = await fetch(`${BASE_URL}/file/${fileId}`, {
         method: 'PUT',
         headers: {

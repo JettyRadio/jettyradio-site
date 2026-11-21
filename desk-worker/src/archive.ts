@@ -79,7 +79,10 @@ export async function archive(request: Request, env: Env, userId: string) {
         "The saved show playlist is not a scheduled show playlist. Check it in AzuraCast."
       );
     const file = files.find((f) => f.id === show.mediaId);
-    if (!file || file.path !== show.mediaPath)
+    const archivePath = show.directory
+      ? `${show.directory}/${show.mediaPath.split("/").pop()}`
+      : show.mediaPath;
+    if (!file || (file.path !== show.mediaPath && file.path !== archivePath))
       throw new Error(
         "The episode’s MP3 is missing or its location changed. Check it in AzuraCast before archiving."
       );
@@ -116,13 +119,31 @@ export async function archive(request: Request, env: Env, userId: string) {
       throw new Error(
         "Another episode is in this show playlist. Review it in AzuraCast before disabling the playlist."
       );
+    if (file.path !== archivePath) {
+      const directories = (await azura("/files/directories")) as { rows: { path: string }[] };
+      if (!directories.rows.some((d) => d.path === show.directory) ||
+        files.some((f) => f.id !== file.id && f.path === archivePath))
+        throw new Error("The archive folder is missing or already contains this filename. Check AzuraCast before archiving.");
+      changed = true;
+      const moved = (await azura("/files/batch", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          do: "move", files: [file.path], dirs: [],
+          currentDirectory: file.path.includes("/") ? file.path.slice(0, file.path.lastIndexOf("/")) : "",
+          directory: show.directory,
+        }),
+      })) as { errors?: unknown[] };
+      if (moved.errors?.length)
+        throw new Error("AzuraCast could not move the aired episode into its show folder.");
+    }
     const ids = [
       ...new Set([
         ...file.playlists.map((p) => p.id).filter((id) => id !== playlist.id),
         ...destinations.map((p) => p.id),
       ]),
     ];
-    if (assigned || !alreadyAssigned || existingDate !== airDate) {
+    if (assigned || !alreadyAssigned || existingDate !== airDate || file.path !== archivePath) {
       changed = true;
       await azura(`/file/${file.id}`, {
         method: "PUT",
@@ -135,7 +156,7 @@ export async function archive(request: Request, env: Env, userId: string) {
     }
     const verified = (await azura(`/file/${file.id}`)) as Media;
     if (
-      verified.path !== file.path ||
+      verified.path !== archivePath ||
       verified.custom_fields?.air_date !== airDate ||
       verified.playlists.some((p) => p.id === playlist.id) ||
       !ids.every((id) => verified.playlists.some((p) => p.id === id))
@@ -170,7 +191,7 @@ export async function archive(request: Request, env: Env, userId: string) {
         "AzuraCast did not confirm that the show playlist is disabled."
       );
     stored.shows = stored.shows.map((s: Show) =>
-      s.id === show.id ? { ...s, status: "archived" } : s
+      s.id === show.id ? { ...s, status: "archived", mediaPath: archivePath } : s
     );
     stored.updatedAt = new Date().toISOString();
     stored.updatedBy = userId;

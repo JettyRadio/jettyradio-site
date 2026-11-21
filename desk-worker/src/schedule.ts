@@ -104,11 +104,12 @@ export async function schedule(request: Request, env: Env) {
     ])) as [Playlist[], Media[], { rows: { path: string }[] }];
     const playlist = playlists.find((p) => p.id === body.playlistId),
       file = files.find((f) => f.id === show.mediaId);
-    if (!playlist || playlist.source !== "songs" || !file)
+    if (!playlist || playlist.source !== "songs" || !file ||
+      ["archives", "heavy rotation"].includes(playlist.name.toLowerCase()))
       throw new Error("Choose a song playlist and an existing audio file.");
     if (
       file.path !== show.mediaPath &&
-      file.path !== `${show.directory}/${show.mediaPath.split("/").pop()}`
+      file.path !== show.mediaPath.split("/").pop()
     )
       throw new Error(
         "The episode media location changed. Refresh its record before submitting."
@@ -222,6 +223,25 @@ export async function schedule(request: Request, env: Env) {
         10 * 1024 * 1024
       );
     }
+    const filename = file.path.split("/").pop()!, newPath = filename;
+    if (files.some((f) => f.id !== file.id && f.path === newPath))
+      throw new Error("Another MP3 already uses this filename outside the show folder. Rename the upload in AzuraCast before scheduling.");
+    if (file.path !== newPath) {
+      const moved = (await azura("/files/batch", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          do: "move", files: [file.path], dirs: [],
+          currentDirectory: file.path.slice(0, file.path.lastIndexOf("/")),
+          directory: "",
+        }),
+      })) as { errors?: unknown[] };
+      if (moved.errors?.length)
+        throw new Error("AzuraCast could not move the upcoming MP3 out of the show folder. The show playlist remains disabled.");
+    }
+    const archiveIds = playlists.filter((p) =>
+      ["archives", "heavy rotation"].includes(p.name.toLowerCase())
+    ).map((p) => p.id);
     const airDate = `${show.date.slice(5, 7)}/${show.date.slice(8, 10)}/${show.date.slice(0, 4)}`;
     await azura(`/file/${file.id}`, {
       method: "PUT",
@@ -230,9 +250,9 @@ export async function schedule(request: Request, env: Env) {
         title: show.title,
         artist: show.artist,
         lyrics: show.tracklist || "",
-        custom_fields: { ...file.custom_fields, air_date: airDate },
+        custom_fields: { ...file.custom_fields, air_date: airDate, archive: "" },
         playlists: [
-          ...new Set([...file.playlists.map((p) => p.id), playlist.id]),
+          ...new Set([...file.playlists.map((p) => p.id).filter((id) => !archiveIds.includes(id)), playlist.id]),
         ],
       }),
     });
@@ -243,29 +263,9 @@ export async function schedule(request: Request, env: Env) {
       artType === "image/png" ? "art.png" : "art.jpg"
     );
     await azura(`/art/${file.id}`, { method: "POST", body: artForm });
-    const filename = file.path.split("/").pop()!,
-      newPath = `${show.directory}/${filename}`;
-    if (file.path !== newPath) {
-      const moved = (await azura("/files/batch", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          do: "move",
-          files: [file.path],
-          dirs: [],
-          currentDirectory: file.path.includes("/")
-            ? file.path.slice(0, file.path.lastIndexOf("/"))
-            : "",
-          directory: show.directory,
-        }),
-      })) as { errors?: unknown[] };
-      if (moved.errors?.length)
-        throw new Error(
-          "AzuraCast could not move the episode to the show directory. The show playlist remains disabled."
-        );
-    }
     const assigned = (await azura(`/file/${file.id}`)) as Media;
-    if (!assigned.playlists.some((p) => p.id === playlist.id))
+    if (!assigned.playlists.some((p) => p.id === playlist.id) ||
+      assigned.playlists.some((p) => archiveIds.includes(p.id)) || assigned.custom_fields?.archive)
       throw new Error(
         "AzuraCast did not confirm the audio assignment. The playlist remains disabled."
       );

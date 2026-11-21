@@ -12,6 +12,18 @@ export const getDateFromString = (date?: string) => {
     const [month, day, year] = date.split("/").map(Number);
     return new Date(year, month - 1, day);
 }
+
+export const airDateHasPassed = (date: string, now = new Date()) => {
+    const parts = date.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!parts) return false;
+    const parsed = getDateFromString(date);
+    if (parsed.getFullYear() !== Number(parts[3]) || parsed.getMonth() + 1 !== Number(parts[1]) || parsed.getDate() !== Number(parts[2])) return false;
+    const airDate = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`;
+    const today = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(now);
+    return airDate < today;
+}
 export const formatShowDate = (date: Date) => date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',

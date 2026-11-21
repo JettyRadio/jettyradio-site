@@ -21,7 +21,7 @@ export function reconciledEpisode(show, file, playlists, playlistId) {
     (!slot.start_date || slot.start_date <= show.date) && (!slot.end_date || slot.end_date >= show.date));
   const episode = {
     ...show, mediaId: file.id, mediaPath: file.path, audioImportedFrom: show.audio,
-    playlistId, directory: file.path.includes("/") ? file.path.slice(0, file.path.lastIndexOf("/")) : "",
+    playlistId, directory: file.path.includes("/") ? file.path.slice(0, file.path.lastIndexOf("/")) : show.directory || "",
     status: archived ? "archived" : "draft",
     audioReviewed: false,
   };
