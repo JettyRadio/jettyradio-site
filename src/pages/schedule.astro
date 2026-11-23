@@ -1,4 +1,5 @@
 ---
+import RouteLinks from '../components/route-links.astro'
 import { Icon } from 'astro-icon/components'
 import MainLayout from '../layouts/main-layout.astro'
 const icsUrl =
@@ -84,6 +85,7 @@ const gCalUrl = `https://www.google.com/calendar/render?cid=${icsUrl}`
 </style>
 <MainLayout title="Schedule | Jetty Radio">
   <h2 class="page-title">Schedule</h2>
+  <RouteLinks label="Explore Jetty" links={[{"href": "/", "label": "Listen live"}, {"href": "/archive", "label": "Listen to past shows"}]} />
   <div class="link-group">
     <a
       href={gCalUrl}

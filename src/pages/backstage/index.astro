@@ -1,17 +1,34 @@
 ---
+import { backstagePages } from '../../lib/backstage/navigation'
 import AdminLayout from '../../layouts/admin-layout.astro'
 ---
 
 <AdminLayout>
-    <main class="backstage-home">
+    <main class="backstage-home flow-home">
         <p class="eyebrow">𒀭 behind the broadcast 𒀭</p>
         <h1>Jetty Backstage</h1>
-        <p>Use the navigation above to review submissions and manage episodes, DJs, and scheduling.</p>
+        <p class="intro">From the DJ’s submission to the next broadcast.</p>
+        <section class="start-here" aria-labelledby="start-heading">
+            <div><h2 id="start-heading">Prepare this week’s shows</h2><p>Open the Scheduling Desk to see what needs audio, artwork, or a confirmed air time. After a show airs, return there to archive it.</p></div>
+            <a class="btn btn-outline" href="/backstage/desk">Open Scheduling Desk</a>
+        </section>
+        <div class="workflow-pages">
+            {backstagePages.filter(page => page.href !== '/backstage' && page.href !== '/backstage/desk').map(page => <a href={page.href}><h2>{page.title}</h2><p>{page.description}</p></a>)}
+        </div>
+        <p class="workflow-note">Review a submission, match it to the correct episode on the Desk, then confirm the audio, artwork, and broadcast time before scheduling.</p>
+        <nav class="workflow-links" aria-label="Listener pages"><a href="/schedule">View public schedule</a><a href="/archive">Browse public archives</a><a href="/">Listen live</a></nav>
     </main>
 </AdminLayout>
 
 <style>
-    .backstage-home{max-width:560px;margin:32px auto 80px;padding:0 16px;text-align:center;font-family:var(--backstage-font)}
-    .eyebrow{color:#c8e6a0;letter-spacing:.1em}
+    .backstage-home{max-width:560px;margin:32px auto 80px;padding:0 16px;text-align:center;font-family:var(--jetty-font)}
+    .eyebrow{color:var(--jetty-text);letter-spacing:.1em}
     h1{font-size:2.5rem;line-height:1.2;margin:12px 0}
+    .flow-home{text-align:left}.flow-home>h1,.flow-home>.eyebrow,.flow-home>.intro{text-align:center}.intro{color:var(--jetty-text-muted);margin-bottom:28px}
+    .start-here{display:flex;align-items:center;justify-content:space-between;gap:32px;padding:28px 0;border-block:1px solid var(--jetty-border)}
+    .start-here h2{font-size:1.5rem;margin-bottom:12px}.start-here p{max-width:65ch;color:var(--jetty-text-muted)}.start-here>a{flex-shrink:0}
+    .workflow-pages{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin:24px 0}
+    .workflow-pages>a{padding:24px 0;border-bottom:1px solid var(--jetty-border);text-decoration:none}.workflow-pages>a:hover h2{text-decoration-thickness:2px}
+    .workflow-pages h2{font-size:1.25rem;color:var(--jetty-text);margin-bottom:12px;text-decoration:underline;text-underline-offset:4px}.workflow-pages p,.workflow-note{color:var(--jetty-text-muted)}.workflow-note{max-width:85ch}
+    @media(max-width:800px){.start-here{align-items:start;flex-direction:column;gap:20px}.workflow-pages{grid-template-columns:1fr}}
 </style>

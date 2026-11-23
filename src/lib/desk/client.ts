@@ -35,6 +35,9 @@ let state: State | null = null,
 const field = (name: string) =>
   form.elements.namedItem(name) as HTMLInputElement;
 const week = $<HTMLInputElement>("desk-week");
+const search = $<HTMLInputElement>("desk-search");
+const filter = $<HTMLSelectElement>("desk-filter");
+search.value = new URLSearchParams(location.search).get("show") || "";
 const now = new Date();
 now.setDate(now.getDate() - ((now.getDay() + 6) % 7));
 week.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -102,16 +105,35 @@ function visible() {
       (a, b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start)
     );
 }
+function readiness(show: Show) {
+  return [
+    { label: "Air time confirmed", complete: show.dateConfirmed },
+    { label: show.mediaId ? "Audio reviewed" : "MP3 attached", complete: !!show.mediaId && show.audioImportedFrom === show.audio && show.audioReviewed },
+    { label: show.artUploadName && !show.scheduledAt ? "Reselect artwork" : "Artwork reviewed", complete: show.artReviewed && (show.artUploadName ? !!show.scheduledAt : !!show.art) },
+    { label: "Scheduled", complete: !!show.scheduledAt },
+  ];
+}
 function render() {
-  const rows = visible(),
-    list = $("desk-shows");
+  const all = visible(), list = $("desk-shows");
+  const rows = all.filter(show => {
+    const matches = `${show.title} ${show.artist}`.toLowerCase().includes(search.value.trim().toLowerCase());
+    const archived = show.status === "archived";
+    const aired = hasAired(show);
+    return matches && (filter.value === "all" ||
+      filter.value === "needs-work" && !archived && !aired && readiness(show).some(item => !item.complete) ||
+      filter.value === "scheduled" && !archived && !!show.scheduledAt ||
+      filter.value === "aired" && !archived && aired ||
+      filter.value === "archived" && archived);
+  });
   list.replaceChildren();
-  $("desk-count").textContent = `${rows.length} episodes`;
+  $("desk-count").textContent = `${rows.length} of ${all.length} episodes`;
+  const needsPreparation = all.filter(s => s.status !== "archived" && !hasAired(s) && readiness(s).some(item => !item.complete)).length;
+  const pastSlots = all.filter(s => s.status !== "archived" && hasAired(s)).length;
   $("desk-summary").textContent =
-    `${rows.filter((s) => s.audio && s.status === "draft").length} submissions to review · ${rows.filter((s) => !s.audio && !s.mediaId && s.status !== "archived").length} awaiting audio.`;
+    `${needsPreparation} upcoming episode${needsPreparation === 1 ? " needs" : "s need"} preparation · ${pastSlots} past slot${pastSlots === 1 ? "" : "s"} to review for archiving.`;
   if (!rows.length)
     list.append(
-      text("p", "No episodes this week. Choose another week or add an episode.")
+      text("p", all.length ? "No episodes match. Clear the filters or choose another week." : "No episodes this week. Choose another week or add an episode.")
     );
   for (const show of rows) {
     const row = document.createElement("div");
@@ -121,7 +143,7 @@ function render() {
       `${new Date(show.date + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", day: "numeric", timeZone: "UTC" })}\n${show.start}–${show.end}`
     );
     date.style.whiteSpace = "pre-line";
-    const title = document.createElement("span");
+    const title = document.createElement("div");
     title.append(
       text("strong", show.title),
       text("small", `${show.artist} · ${show.owner || "Unassigned"}`)
@@ -129,14 +151,28 @@ function render() {
     const badge = text("span", status(show));
     badge.className = "desk-badge";
     title.append(badge);
+    if (show.status !== "archived") {
+      const checklist = document.createElement("ul");
+      checklist.className = "desk-readiness";
+      checklist.setAttribute("aria-label", `Preparation for ${show.title}`);
+      for (const item of readiness(show)) {
+        const entry = text("li", `${item.complete ? "✓" : "○"} ${item.label}`);
+        entry.dataset.complete = String(item.complete);
+        entry.setAttribute("aria-label", `${item.label}: ${item.complete ? "complete" : "needed"}`);
+        checklist.append(entry);
+      }
+      title.append(checklist);
+    }
     const actions = document.createElement("div");
     actions.className = "desk-row-actions";
     for (const action of ["Schedule", "Archive"] as const) {
+      if (action === "Schedule" && show.status === "archived" || action === "Archive" && show.status !== "archived" && !hasAired(show)) continue;
       const button = document.createElement("button");
       button.type = "button";
       button.className = "btn btn-outline";
-      button.textContent = action;
-      button.setAttribute("aria-label", `${action} ${show.title} (${show.date})`);
+      const label = action === "Archive" ? show.status === "archived" ? "View archive" : "Review & archive" : show.scheduledAt ? "Review schedule" : "Prepare episode";
+      button.textContent = label;
+      button.setAttribute("aria-label", `${label}: ${show.title} (${show.date})`);
       button.dataset.unavailable = String(action === "Schedule" && show.status === "archived");
       button.disabled = busy || button.dataset.unavailable === "true";
       button.addEventListener("click", () => {
@@ -148,6 +184,18 @@ function render() {
     list.append(row);
   }
 }
+search.addEventListener("input", render);
+filter.addEventListener("change", render);
+$("desk-clear-filters").addEventListener("click", () => {
+  search.value = "";
+  filter.value = "all";
+  const url = new URL(location.href);
+  url.searchParams.delete("show");
+  history.replaceState(null, "", url);
+  render();
+  search.focus();
+});
+
 function link(name: string) {
   const a = $<HTMLAnchorElement>(`desk-${name}-link`);
   const value = field(name).value;
@@ -1147,6 +1195,8 @@ $sessionStore.subscribe((session) => {
   } else {
     state = null;
     $("desk-shows").replaceChildren();
+    $("desk-count").textContent = "";
+    $("desk-summary").textContent = "";
     dialog.close();
     archiveDialog.close();
     archiveEpisode = null;

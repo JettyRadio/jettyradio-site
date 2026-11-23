@@ -139,3 +139,27 @@ npm run deploy
 Keep the existing Clerk team allowlist configured. The private files are not
 included in a Git clone; transfer them securely when setting up another laptop.
 `bun test` covers roster validation and the directory API's access checks.
+
+### Backstage and public-site navigation
+
+The Backstage overview, navigation, weekly readiness checklist and filters, and
+submission-to-Desk search links are always enabled. Existing Clerk and Worker
+authorization still applies.
+
+`PUBLIC_SITE_FLOW=true npm run dev:site` previews the public-site navigation
+changes, including listener links and the signed-in Backstage entry point.
+This flag defaults to off and does not control Backstage tooling. Set the GitHub
+Actions variable `PUBLIC_SITE_FLOW` to `true` for an approved public-site release;
+changes to this build-wide UI flag take effect on the next website build.
+
+Checklist items reflect saved Desk data, not a fresh station audit. Local artwork
+that has not been scheduled must be reselected when reopening the editor.
+Submission links find a show in the selected Desk week; they do not copy files,
+create episodes, mark submissions reviewed, or schedule a broadcast.
+
+### Shared design system
+
+Use [`src/styles/jetty.css`](src/styles/jetty.css) for fonts, colors, texture,
+links, and Backstage controls. Read the [styling rules](src/styles/README.md)
+before changing UI. Backstage is serif throughout, uses the existing Jetty
+navigation, and keeps the grain visible through transparent panels.

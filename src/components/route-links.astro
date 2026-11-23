@@ -1,0 +1,11 @@
+---
+import { siteFlowEnabled } from '../lib/features'
+interface Props { label: string; links: { href: string; label: string }[] }
+const { label, links } = Astro.props
+---
+{siteFlowEnabled && <nav class="route-links" aria-label={label}>
+    {links.map((link, index) => <>{index > 0 && <span aria-hidden="true">𒀭</span>}<a href={link.href}>{link.label}</a></>)}
+</nav>}
+<style>
+    .route-links{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;margin:12px 0 24px;padding:0 16px;text-align:center;font-size:1rem;line-height:1.7}
+</style>

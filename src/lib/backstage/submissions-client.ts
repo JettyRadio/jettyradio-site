@@ -83,6 +83,13 @@ function card(record: Submission) {
         } finally { button.disabled = false }
     })
     body.append(dl, button)
+    const next = element('nav')
+    next.className = 'workflow-links'
+    next.setAttribute('aria-label', `Next steps for ${record.title}`)
+    const desk = element('a', 'Find this show on the Desk')
+    desk.href = `/backstage/desk?${new URLSearchParams({ show: record.title })}`
+    next.append(desk)
+    body.append(next, element('p', 'Choose the episode’s week on the Desk and match its air date before copying in these submission details. Marking reviewed does not schedule it.'))
     details.append(summary, body)
     return details
 }

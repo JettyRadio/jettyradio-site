@@ -1,0 +1,144 @@
+:root {
+  --jetty-font: serif;
+  --jetty-background: #0e0e0e;
+  --jetty-texture: url('/bg.png');
+  --jetty-text: #f2f2f2;
+  --jetty-text-muted: #ccc;
+  --jetty-text-subtle: #bbb;
+  --jetty-inverse: #181818;
+  --jetty-border: #ffffff36;
+  --jetty-border-strong: #aaa;
+  --jetty-hover: #ffffff08;
+  --jetty-surface: transparent;
+  --jetty-surface-inset: #ffffff04;
+  --jetty-overlay: var(--jetty-background) var(--jetty-texture) repeat;
+  --jetty-focus: var(--jetty-text);
+  --jetty-field: var(--jetty-text);
+  --jetty-field-muted: #666;
+  --jetty-disabled: #333;
+  --jetty-error: #ffafa7;
+  --jetty-shadow: #0006;
+  --jetty-radius: 2px;
+  --jetty-content-width: 1260px;
+}
+
+.jetty-header,
+.jetty-navigation,
+.route-links,
+.page-title,
+.backstage-shell {
+  font-family: var(--jetty-font);
+}
+
+.jetty-navigation a,
+.route-links a,
+.backstage-shell a:not(.btn) {
+  color: var(--jetty-text);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.jetty-navigation a:hover,
+.route-links a:hover,
+.backstage-shell a:not(.btn):hover {
+  text-decoration-thickness: 2px;
+}
+
+.jetty-navigation a:focus-visible,
+.route-links a:focus-visible,
+.backstage-shell :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--jetty-focus);
+  outline-offset: 4px;
+}
+
+.backstage-shell :is(button, input, select, textarea) {
+  font-family: inherit;
+}
+
+.backstage-shell input::file-selector-button {
+  font-family: inherit;
+}
+
+.backstage-shell .hero {
+  min-height: 360px;
+}
+
+.backstage-content > main {
+  max-width: var(--jetty-content-width);
+  margin: 32px auto 80px;
+  padding: 0 24px;
+  line-height: 1.6;
+}
+
+.backstage-content :is(h1, h2, h3) {
+  font-family: var(--jetty-font);
+}
+
+.backstage-content h1 {
+  font-size: 2.5rem;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.backstage-shell :is(.btn, .input, .select, .textarea, .file-input),
+.backstage-content :is(.desk-panel, .table-container, .dj-record, .notice) {
+  border-radius: var(--jetty-radius);
+}
+
+.backstage-shell :is(input, select, textarea) {
+  background-color: var(--jetty-field);
+  color: var(--jetty-inverse);
+  border-color: var(--jetty-border-strong);
+  color-scheme: light;
+}
+
+.backstage-shell :is(input, textarea)::placeholder {
+  color: var(--jetty-field-muted);
+  opacity: 1;
+}
+
+.backstage-shell input[type=checkbox] {
+  accent-color: var(--jetty-field);
+}
+
+.backstage-shell .btn-outline {
+  color: var(--jetty-text);
+  background: var(--jetty-surface);
+  border: 1px solid var(--jetty-border-strong);
+}
+
+.backstage-shell :is(.btn-accent, .btn-primary),
+.backstage-shell .btn-outline:hover:not(:disabled) {
+  color: var(--jetty-inverse);
+  background: var(--jetty-field);
+  border-color: var(--jetty-field);
+}
+
+.backstage-shell :is(.btn-accent, .btn-primary):hover:not(:disabled) {
+  background: var(--jetty-text-muted);
+  border-color: var(--jetty-text-muted);
+}
+
+.backstage-shell .btn:disabled {
+  color: var(--jetty-text-subtle);
+  background: var(--jetty-disabled);
+  border-color: var(--jetty-field-muted);
+  opacity: 1;
+}
+
+.backstage-shell .btn-ghost {
+  color: var(--jetty-text);
+}
+
+.backstage-shell .workflow-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin: 20px 0 24px;
+  font-size: 18px;
+}
+
+@media (max-width: 520px) {
+  .backstage-content > main { padding: 0 16px; }
+  .backstage-content h1 { font-size: 2rem; }
+}

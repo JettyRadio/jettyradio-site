@@ -1,11 +1,14 @@
 ---
+import { backstagePages } from '../lib/backstage/navigation'
 import RootLayout from './root-layout.astro'
 import { Show, SignInButton } from '@clerk/astro/components'
 import Header from '../components/header.astro'
+const page = backstagePages.find(page => page.href === Astro.url.pathname.replace(/\/$/, ''))
+const title = `${page?.title || 'Upload show'} | Jetty Backstage`
 ---
 
-<RootLayout title="Jetty Admin">
-    <Header />
+<RootLayout title={title}>
+    <Header backstage />
     <div class="backstage-shell">
         <Show when="signed-in">
             <div class="backstage-content"><slot /></div>
@@ -16,8 +19,7 @@ import Header from '../components/header.astro'
                     <div class="max-w-md">
                         <h1 class="text-5xl font-bold">Jetty Backstage</h1>
                         <p class="py-6">
-                            Ohhhhhhhh you found it! Very much under development, be
-                            careful 😘
+                            Sign in with your invited account to review submissions, prepare broadcasts, and manage the station library.
                         </p>
                         <SignInButton mode="modal" class:list="btn btn-primary" />
                     </div>
@@ -26,12 +28,3 @@ import Header from '../components/header.astro'
         </Show>
     </div>
 </RootLayout>
-
-<style is:global>
-    .backstage-shell{--backstage-font:"Courier New",Courier,monospace;font-family:var(--backstage-font)}
-    .backstage-shell button,.backstage-shell input,.backstage-shell select,.backstage-shell textarea{font-family:inherit}
-    .backstage-content h1,.backstage-content h2,.backstage-content h3{font-family:var(--backstage-font)}
-    .backstage-content .btn{border-radius:2px}
-    .backstage-content .input,.backstage-content .select,.backstage-content .textarea,.backstage-content .file-input{border-radius:2px}
-    .backstage-content .desk-panel,.backstage-content .table-container,.backstage-content .dj-record,.backstage-content .notice{border-radius:2px}
-</style>

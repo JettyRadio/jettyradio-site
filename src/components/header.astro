@@ -1,7 +1,13 @@
 ---
+import { siteFlowEnabled } from '../lib/features';
+import { backstagePages } from '../lib/backstage/navigation';
 import logo from "../assets/jettyradio2.png";
 import { Show, UserButton } from '@clerk/astro/components';
 
+interface Props { backstage?: boolean }
+const { backstage = false } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const current = (href: string) => siteFlowEnabled && (path === href || href === '/archive' && path.startsWith('/dj/')) ? 'page' : undefined;
 ---
 
 <style>
@@ -11,24 +17,16 @@ import { Show, UserButton } from '@clerk/astro/components';
         align-items: center;
         gap: 16px;
         padding: 16px;
-        font-family: serif;
     }
 
     nav {
         text-align: center;
-        font-family: serif;
         font-size: 18px;
         line-height: 2;
     }
 
     .subtitle {
         font-size: 16px;
-    }
-
-    .account {
-        display: flex;
-        justify-content: center;
-        margin-top: 8px;
     }
 
     .logo img {
@@ -42,26 +40,41 @@ import { Show, UserButton } from '@clerk/astro/components';
         display: flex;
         justify-content: center;
     }
+    .account{display:flex;justify-content:center;margin-top:8px}
+    .backstage-links{padding:0 16px}
+    .backstage-links a{white-space:nowrap}
+    nav a[aria-current=page]{text-decoration-thickness:2px;text-underline-offset:5px}
+    .backstage-entry{font-size:16px;margin-top:8px}
 </style>
-<header>
+<header class="jetty-header">
     <a href="/" class="logo"><img src={logo.src} alt="Jetty Radio" /></a>
     <p class="subtitle">Santa Cruz-based internet radio</p>
 </header>
-<nav aria-label="Jetty navigation">
-    <a class="link" href="/">Listen Live</a> 𒀭
-    <a class="link" href="/schedule">Schedule</a> 𒀭
-    <a class="link" href="/archive">Archives</a> 𒀭
-    <a class="link" href="/about">About</a>
+<nav class="jetty-navigation" aria-label="Jetty navigation">
+    <a class="link" href="/" aria-current={current('/')}>Listen Live</a> 𒀭
+    <a class="link" href="/schedule" aria-current={current('/schedule')}>Schedule</a> 𒀭
+    <a class="link" href="/archive" aria-current={current('/archive')}>Archives</a> 𒀭
+    <a class="link" href="/about" aria-current={current('/about')}>About</a>
     <br />
-    <a class="link" href="/support">Support</a> 𒀭
+    <a class="link" href="/support" aria-current={current('/support')}>Support</a> 𒀭
     <a class="link" href="https://instagram.com/jettyradio" target="_blank"
         >Instagram</a
     >
-    <Show when="signed-in">
+    {backstage && <>
+        <div class="backstage-links">
+            {backstagePages.map(({ href, title }, index) => <>
+                {index > 0 && <span aria-hidden="true"> 𒀭 </span>}
+                <a class="link" href={href} aria-current={path === href ? 'page' : undefined}>{title}</a>
+            </>)}
+        </div>
+        <Show when="signed-in"><div class="account"><UserButton /></div></Show>
+    </>}
+    {!backstage && siteFlowEnabled && <Show when="signed-in"><div class="backstage-entry"><a class="link" href="/backstage" data-astro-reload>Backstage</a></div></Show>}
+    {!backstage && !siteFlowEnabled && <Show when="signed-in">
         <a class="link" href="/backstage/episodes">Episodes</a> 𒀭
         <a class="link" href="/backstage/djs">DJs</a> 𒀭
         <a class="link" href="/backstage/submissions">Recently submitted</a> 𒀭
         <a class="link" href="/backstage/desk">Scheduling Desk</a>
         <div class="account"><UserButton /></div>
-    </Show>
+    </Show>}
 </nav>

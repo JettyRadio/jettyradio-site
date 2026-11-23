@@ -11,6 +11,7 @@ import AdminLayout from '../../layouts/admin-layout.astro'
 
 <AdminLayout>
     <header class="upload-heading"><p>𒀭 JETTY BACKSTAGE 𒀭</p><h1>Upload show</h1><span>Send an episode to the station.</span></header>
+    <aside class="upload-flow-note"><p>For weekly broadcasts, use the Scheduling Desk to keep audio, artwork, and air time together.</p><a href="/backstage/desk">Upload and schedule on the Desk</a><p>This standalone upload form is still available below.</p></aside>
     <div class="flex flex-col items-center my-8">
         <form id="upload-form" class="flex flex-col gap-4 w-80">
             <label class="floating-label">
@@ -369,8 +370,10 @@ import AdminLayout from '../../layouts/admin-layout.astro'
 </AdminLayout>
 
 <style>
-    .upload-heading{text-align:center;margin:32px 16px 24px;font-family:var(--backstage-font)}
-    .upload-heading p{color:#c8e6a0;letter-spacing:.12em;font-size:.875rem;margin-bottom:8px}
+    .upload-heading{text-align:center;margin:32px 16px 24px;font-family:var(--jetty-font)}
+    .upload-heading p{color:var(--jetty-text);letter-spacing:.12em;font-size:.875rem;margin-bottom:8px}
     .upload-heading h1{font-size:2.5rem;line-height:1.2;margin-bottom:12px}
-    .upload-heading span{color:#ccc}
+    .upload-heading span{color:var(--jetty-text-muted)}
 </style>
+
+<style>.upload-flow-note{max-width:650px;margin:24px auto;padding:20px;background:var(--jetty-surface);border:1px solid var(--jetty-border);font-family:var(--jetty-font);line-height:1.6}.upload-flow-note a{display:inline-block;margin:12px 0;color:var(--jetty-text);text-decoration:underline}</style>

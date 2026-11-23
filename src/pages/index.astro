@@ -1,4 +1,5 @@
 ---
+import RouteLinks from '../components/route-links.astro'
 import { Icon } from 'astro-icon/components'
 import Chat from '../components/chat.astro'
 import WebCounter from '../components/webCounter.astro'
@@ -39,6 +40,7 @@ import MainLayout from '../layouts/main-layout.astro'
   >
     <Icon name="download" />Listen in your media player
   </a>
+  <RouteLinks label="Explore Jetty" links={[{"href": "/schedule", "label": "See what\u2019s coming up"}, {"href": "/archive", "label": "Listen to past shows"}]} />
   <Chat />
   <WebCounter />
 </MainLayout>

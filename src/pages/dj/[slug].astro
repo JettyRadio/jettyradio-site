@@ -1,4 +1,5 @@
 ---
+import RouteLinks from '../../components/route-links.astro'
 import Show from '../../components/show.astro'
 import MainLayout from '../../layouts/main-layout.astro'
 import { getDjSlug } from '../../utils'
@@ -34,6 +35,7 @@ const { shows, dj } = Astro.props
 
 <MainLayout title="Archive | Jetty Radio">
     <h2 class="page-title">{dj}</h2>
+  <RouteLinks label="Explore Jetty" links={[{"href": "/archive", "label": "All archives"}, {"href": "/schedule", "label": "Upcoming shows"}]} />
     {
         shows.map((show) => (
             <Show

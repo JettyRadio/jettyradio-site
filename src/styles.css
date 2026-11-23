@@ -1,17 +1,17 @@
 @import "tailwindcss";
+@import "./styles/jetty.css";
 @plugin "daisyui";
 
 html {
-  background-color: #0e0e0e;
-  background-image: url('/bg.png');
+  background-color: var(--jetty-background);
+  background-image: var(--jetty-texture);
   background-repeat: repeat;
 }
 
 body {
   margin: 0;
   padding: 0;
-  color: #f2f2f2;
-  /* font-size: 18px; */
+  color: var(--jetty-text);
 }
 
 .column {
@@ -25,7 +25,6 @@ body {
 }
 
 .page-title {
-  font-family: serif;
   @apply text-2xl text-center font-semibold my-4;
 }
 

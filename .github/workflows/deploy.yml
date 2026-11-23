@@ -26,6 +26,7 @@ jobs:
     outputs:
       desk_configured: ${{ steps.desk-config.outputs.configured }}
     env:
+      PUBLIC_SITE_FLOW: ${{ vars.PUBLIC_SITE_FLOW }}
       AZURACAST_API_KEY: ${{ secrets.AZURACAST_API_KEY }}
       PUBLIC_DESK_API_URL: ${{ vars.PUBLIC_DESK_API_URL }}
       PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.PUBLIC_CLERK_PUBLISHABLE_KEY }}
